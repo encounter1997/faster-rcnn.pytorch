@@ -78,7 +78,7 @@ if __name__ == '__main__':
     cfg_from_list(args.set_cfgs)
 
   # set random seed
-  if args.seed is none:
+  if args.seed is None:
     args.seed = random.randint(1, 10000)
   set_seed(args.seed)
 
