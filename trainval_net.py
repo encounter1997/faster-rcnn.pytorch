@@ -107,8 +107,8 @@ if __name__ == '__main__':
     raise ValueError("duplicate output dir !")
 
   # save trainval_net.py and lib/models/faster_rcnn
-  shutil.copyfile('trainval_net.py', os.path.join(output_dir, 'trainval_net.py'))  # todo: modify this line when renaming the file
-  shutil.copytree('lib/model/faster_rcnn', output_dir)
+  shutil.copyfile('trainval_net.py', os.path.join(output_dir, 'train_files'))  # todo: modify this line when renaming the file
+  shutil.copyfile('lib/model/faster_rcnn/*', os.path.join(output_dir, 'train_files'))
 
   sampler_batch = sampler(train_size, args.batch_size)
 
