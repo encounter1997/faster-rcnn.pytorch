@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
   # save trainval_net.py and lib/models/faster_rcnn
   shutil.copyfile('trainval_net.py', os.path.join(output_dir, 'trainval_net.py'))  # todo: modify this line when renaming the file
-  shutil.copytree('lib/models/faster_rcnn', output_dir)
+  shutil.copytree('lib/model/faster_rcnn', output_dir)
 
   sampler_batch = sampler(train_size, args.batch_size)
 
