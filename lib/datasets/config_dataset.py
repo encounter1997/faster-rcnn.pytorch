@@ -28,7 +28,7 @@ cfg_d = __D
 # __D.FOGGYCITY = "VOC2007"
 
 # Training options
-__D.FATHER_DIR = '../../datasets'
+__D.FATHER_DIR = '../datasets'
 #with regard to pascal, the directories under the path will be ./VOC2007, ./VOC2012"
 __D.PASCAL = os.path.join(__D.FATHER_DIR, "VOCdevkit")
 __D.PASCALWATER = os.path.join(__D.FATHER_DIR, "VOCdevkit")

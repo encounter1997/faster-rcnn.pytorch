@@ -33,7 +33,9 @@ def parse_args():
                         default=10000, type=int)
 
     parser.add_argument('--save_dir', dest='save_dir',
-                        help='directory to save models', default="models",
+                        # help='directory to save models', default="models",
+                        help='directory to save models',
+                        default="/workspace/data0/wwen/ijcai/faster-rcnn-baseline/models",
                         type=str)
     parser.add_argument('--load_name', dest='load_name',
                         help='path to load models', default="models",
