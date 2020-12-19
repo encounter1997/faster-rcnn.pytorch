@@ -7,6 +7,9 @@ def parse_args():
     Parse input arguments
     """
     parser = argparse.ArgumentParser(description='Train a Fast R-CNN network')
+    parser.add_argument('--seed', dest='seed',
+                        help='random seed',
+                        default=none, type=int)
     parser.add_argument('--dataset', dest='dataset',
                         help='source training dataset',
                         default='pascal_voc_0712', type=str)

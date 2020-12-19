@@ -11,6 +11,15 @@ import pdb
 import random
 
 
+def set_seed(seed):
+    torch.cuda.manual_seed_all(seed)
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    np.random.seed(seed)
+    random.seed(seed)
+
+
 def save_net(fname, net):
     import h5py
     h5f = h5py.File(fname, mode='w')

@@ -10,6 +10,7 @@ from __future__ import print_function
 import _init_paths
 import os
 import sys
+import random
 import numpy as np
 import argparse
 import pprint
@@ -28,7 +29,7 @@ from roi_data_layer.roidb import combined_roidb
 from roi_data_layer.roibatchLoader import roibatchLoader
 from model.utils.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
 from model.utils.net_utils import weights_normal_init, save_net, load_net, \
-      adjust_learning_rate, save_checkpoint, clip_gradient
+      adjust_learning_rate, save_checkpoint, clip_gradient, set_seed
 
 from model.faster_rcnn.vgg16 import vgg16
 from model.faster_rcnn.resnet import resnet
@@ -61,6 +62,7 @@ class sampler(Sampler):
   def __len__(self):
     return self.num_data
 
+
 if __name__ == '__main__':
 
   args = parse_args()
@@ -68,12 +70,16 @@ if __name__ == '__main__':
   print('Called with args:')
   print(args)
 
-
   args = set_dataset_args(args)
   if args.cfg_file is not None:
     cfg_from_file(args.cfg_file)
   if args.set_cfgs is not None:
     cfg_from_list(args.set_cfgs)
+
+  # set random seed
+  if args.seed is none:
+    args.seed = random.randint(1, 10000)
+  set_seed(args.seed)
 
   print('Using config:')
   pprint.pprint(cfg)
@@ -92,7 +98,7 @@ if __name__ == '__main__':
 
   print('{:d} roidb entries'.format(len(roidb)))
 
-  output_dir = args.save_dir + "/" + args.net + "/" + args.dataset
+  output_dir = args.save_dir + "/" + args.net + "/" + args.dataset + "/" + args.seed
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
