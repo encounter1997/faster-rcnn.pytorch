@@ -8,6 +8,7 @@ from __future__ import absolute_import
 # --------------------------------------------------------
 
 import xml.dom.minidom as minidom
+
 import os
 # import PIL
 import numpy as np
@@ -30,33 +31,25 @@ from model.utils.config import cfg
 from .config_dataset import cfg_d
 
 
-
 try:
     xrange          # Python 2
 except NameError:
     xrange = range  # Python 3
+
 # <<<< obsolete
 
-class clipart(imdb):
-    def __init__(self, image_set, year=2007, devkit_path=None):
-        imdb.__init__(self, 'clipart_' + image_set)
+
+class kitti(imdb):
+    def __init__(self, image_set,  devkit_path=None):
+        imdb.__init__(self, 'kitti_'+ image_set)
         self._year = 2007
         self._image_set = image_set
-        self._devkit_path = cfg_d.CLIPART  #self._get_default_path() if devkit_path is None \
-#        self._devkit_path = self._get_default_path() if devkit_path is None \
-#            else devkit_path
-        self._data_path = self._devkit_path  #os.path.join(self._devkit_path, 'clipart')
+        self._devkit_path = cfg_d.KITTI  #self._get_default_path() if devkit_path is None \
+            #else devkit_path
+        self._data_path = os.path.join(self._devkit_path)
         self._classes = ('__background__',  # always index 0
-                         'aeroplane', 'bicycle', 'bird', 'boat',
-                         'bottle', 'bus', 'car', 'cat', 'chair',
-                         'cow', 'diningtable', 'dog', 'horse',
-                         'motorbike', 'person', 'pottedplant',
-                         'sheep', 'sofa', 'train', 'tvmonitor')
+                         'car')
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
-        import getpass
-        # if 'ksaito' in getpass.getuser():
-        #     self._image_ext = ''
-        # else:
         self._image_ext = '.jpg'
         self._image_index = self._load_image_set_index()
         # Default to roidb handler
@@ -94,7 +87,7 @@ class clipart(imdb):
         """
         Construct an image path from the image's "index" identifier.
         """
-        image_path = os.path.join(self._data_path,'JPEGImages',
+        image_path = os.path.join(self._data_path, 'JPEGImages',
                                   index + self._image_ext)
         assert os.path.exists(image_path), \
             'Path does not exist: {}'.format(image_path)
@@ -118,7 +111,7 @@ class clipart(imdb):
         """
         Return the default path where PASCAL VOC is expected to be installed.
         """
-        return os.path.join(cfg.DATA_DIR)#self._year)
+        return os.path.join(cfg.DATA_DIR, 'VOCdevkit' + str(self._year))
 
     def gt_roidb(self):
         """
@@ -129,7 +122,7 @@ class clipart(imdb):
         cache_file = os.path.join(self.cache_path, self.name + '_gt_roidb.pkl')
         if os.path.exists(cache_file):
             with open(cache_file, 'rb') as fid:
-                roidb = pickle.load(fid)#,encoding='latin1')
+                roidb = pickle.load(fid)
             print('{} gt roidb loaded from {}'.format(self.name, cache_file))
             return roidb
 
@@ -210,29 +203,37 @@ class clipart(imdb):
     def _load_pascal_annotation(self, index):
         """
         Load image and bounding boxes info from XML file in the PASCAL VOC
-        format.
+        format. Exclude bounding boxes which are not included in self._classes.
         """
-        filename = os.path.join(self._data_path, 'Annotations', index + '.xml')
+        filename = os.path.join(self._data_path, 'Annotations', index.replace('.jpg','') + '.xml')
         tree = ET.parse(filename)
         objs = tree.findall('object')
-        # if not self.config['use_diff']:
-        #     # Exclude the samples labeled as difficult
-        #     non_diff_objs = [
-        #         obj for obj in objs if int(obj.find('difficult').text) == 0]
-        #     # if len(non_diff_objs) != len(objs):
-        #     #     print 'Removed {} difficult objects'.format(
-        #     #         len(objs) - len(non_diff_objs))
-        #     objs = non_diff_objs
-        num_objs = len(objs)
 
+        num_objs = len(objs)
+        count = 0
+        for ix, obj in enumerate(objs):
+            bboxe = obj.find('bndbox')
+            try:
+                cls = self._class_to_ind[obj.find('name').text.lower().strip()]
+                count += 1
+            except:
+                continue
+
+        num_objs = count  # len(objs)
         boxes = np.zeros((num_objs, 4), dtype=np.uint16)
         gt_classes = np.zeros((num_objs), dtype=np.int32)
         overlaps = np.zeros((num_objs, self.num_classes), dtype=np.float32)
         # "Seg" area for pascal is just the box area
         seg_areas = np.zeros((num_objs), dtype=np.float32)
         ishards = np.zeros((num_objs), dtype=np.int32)
-
+        count = 0
+        img_size = tree.find('size')  # [0]
+        # print(img_size)
+        # print((int(tree.find('width').text)))
+        seg_map = np.zeros((int(img_size.find('width').text), int(img_size.find('height').text)))
         # Load object bounding boxes into a data frame.
+        if len(objs) > 20:
+            print(len(objs))
         for ix, obj in enumerate(objs):
             bbox = obj.find('bndbox')
             # Make pixel indexes 0-based
@@ -243,62 +244,26 @@ class clipart(imdb):
 
             diffc = obj.find('difficult')
             difficult = 0 if diffc == None else int(diffc.text)
-            ishards[ix] = difficult
 
-            cls = self._class_to_ind[obj.find('name').text.lower().strip()]
-            boxes[ix, :] = [x1, y1, x2, y2]
-            gt_classes[ix] = cls
-            overlaps[ix, cls] = 1.0
-            seg_areas[ix] = (x2 - x1 + 1) * (y2 - y1 + 1)
-
+            try:
+                cls = self._class_to_ind[obj.find('name').text.lower().strip()]
+            except:
+                print(filename)
+                continue
+            #seg_map[x1:x2, y1:y2] = cls
+            ishards[count] = difficult
+            boxes[count, :] = [x1, y1, x2, y2]
+            gt_classes[count] = cls
+            overlaps[count, cls] = 1.0
+            seg_areas[count] = (x2 - x1 + 1) * (y2 - y1 + 1)
+            count += 1
         overlaps = scipy.sparse.csr_matrix(overlaps)
-
         return {'boxes': boxes,
                 'gt_classes': gt_classes,
                 'gt_ishard': ishards,
                 'gt_overlaps': overlaps,
                 'flipped': False,
                 'seg_areas': seg_areas}
-
-    def _save_pascal_crop(self, index):
-        """
-        Load image and bounding boxes info from XML file in the PASCAL VOC
-        format.
-        """
-        filename = os.path.join(self._data_path, 'Annotations', index + '.xml')
-        tree = ET.parse(filename)
-        objs = tree.findall('object')
-        # if not self.config['use_diff']:
-        #     # Exclude the samples labeled as difficult
-        #     non_diff_objs = [
-        #         obj for obj in objs if int(obj.find('difficult').text) == 0]
-        #     # if len(non_diff_objs) != len(objs):
-        #     #     print 'Removed {} difficult objects'.format(
-        #     #         len(objs) - len(non_diff_objs))
-        #     objs = non_diff_objs
-        num_objs = len(objs)
-
-        boxes = np.zeros((num_objs, 4), dtype=np.uint16)
-        gt_classes = np.zeros((num_objs), dtype=np.int32)
-        overlaps = np.zeros((num_objs, self.num_classes), dtype=np.float32)
-        # "Seg" area for pascal is just the box area
-        seg_areas = np.zeros((num_objs), dtype=np.float32)
-        ishards = np.zeros((num_objs), dtype=np.int32)
-        # Load object bounding boxes into a data frame.
-        for ix, obj in enumerate(objs):
-            bbox = obj.find('bndbox')
-            # Make pixel indexes 0-based
-            x1 = float(bbox.find('xmin').text) - 1
-            y1 = float(bbox.find('ymin').text) - 1
-            x2 = float(bbox.find('xmax').text) - 1
-            y2 = float(bbox.find('ymax').text) - 1
-
-            diffc = obj.find('difficult')
-            difficult = 0 if diffc == None else int(diffc.text)
-            ishards[ix] = difficult
-
-            cls = obj.find('name').text.lower().strip()
-            boxes[ix, :] = [x1, y1, x2, y2]
 
     def _get_comp_id(self):
         comp_id = (self._comp_id + '_' + self._salt if self.config['use_salt']
@@ -308,8 +273,7 @@ class clipart(imdb):
     def _get_voc_results_file_template(self):
         # VOCdevkit/results/VOC2007/Main/<comp_id>_det_test_aeroplane.txt
         filename = self._get_comp_id() + '_det_' + self._image_set + '_{:s}.txt'
-        # filedir = os.path.join('./', 'results', 'VOC' + str(self._year), 'Main')
-        filedir = os.path.join('./', 'results', 'clipart_' + self._image_set)
+        filedir = os.path.join(self._devkit_path, 'results',  'Main')
         if not os.path.exists(filedir):
             os.makedirs(filedir)
         path = os.path.join(filedir, filename)
@@ -336,10 +300,12 @@ class clipart(imdb):
     def _do_python_eval(self, output_dir='output'):
         annopath = os.path.join(
             self._devkit_path,
+
             'Annotations',
             '{:s}.xml')
         imagesetfile = os.path.join(
             self._devkit_path,
+
             'ImageSets',
             'Main',
             self._image_set + '.txt')
@@ -359,13 +325,9 @@ class clipart(imdb):
                 use_07_metric=use_07_metric)
             aps += [ap]
             print('AP for {} = {:.4f}'.format(cls, ap))
-            with open(os.path.join(output_dir, 'eval_result.txt'),'a') as result_f:
-                result_f.write('AP for {} = {:.4f}'.format(cls, ap)+'\n')
             with open(os.path.join(output_dir, cls + '_pr.pkl'), 'wb') as f:
                 pickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
         print('Mean AP = {:.4f}'.format(np.mean(aps)))
-        with open(os.path.join(output_dir, 'eval_result.txt'), 'a') as result_f:
-            result_f.write('Mean AP = {:.4f}'.format(np.mean(aps)) + '\n')
         print('~~~~~~~~')
         print('Results:')
         for ap in aps:

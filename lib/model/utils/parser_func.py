@@ -137,6 +137,10 @@ def set_dataset_args(args, test=False):
             args.imdb_name = "sim10k_train"
             args.imdbval_name = "cityscape_val"
             args.set_cfgs = ['ANCHOR_SCALES', '[8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]', 'MAX_NUM_GT_BOXES', '30']
+        elif args.dataset == "kitti":
+            args.imdb_name = "kitti_train"
+            args.imdbval_name = "cityscape_val"
+            args.set_cfgs = ['ANCHOR_SCALES', '[8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]', 'MAX_NUM_GT_BOXES', '30']
 
         # cityscape dataset for only car classes.
         elif args.dataset == "cityscape_car":

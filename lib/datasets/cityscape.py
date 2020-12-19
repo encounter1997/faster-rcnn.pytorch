@@ -110,7 +110,7 @@ class cityscape(imdb):
         """
         Return the default path where PASCAL VOC is expected to be installed.
         """
-        return os.path.join(cfg.DATA_DIR, 'VOCdevkit' + self._year)
+        return os.path.join(cfg.DATA_DIR, 'VOCdevkit' + str(self._year))
 
     def gt_roidb(self):
         """

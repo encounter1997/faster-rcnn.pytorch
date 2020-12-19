@@ -42,7 +42,7 @@ except NameError:
 class sim10k(imdb):
     def __init__(self, image_set,  devkit_path=None):
         imdb.__init__(self, 'sim10k_'+ image_set)
-        self._year = '2012'
+        self._year = 2007
         self._image_set = image_set
         self._devkit_path = cfg_d.SIM10K#self._get_default_path() if devkit_path is None \
             #else devkit_path
@@ -111,7 +111,7 @@ class sim10k(imdb):
         """
         Return the default path where PASCAL VOC is expected to be installed.
         """
-        return os.path.join(cfg.DATA_DIR, 'VOCdevkit' + self._year)
+        return os.path.join(cfg.DATA_DIR, 'VOCdevkit' + str(self._year))
 
     def gt_roidb(self):
         """

@@ -16,6 +16,7 @@ from datasets.pascal_voc_water import pascal_voc_water
 # from datasets.pascal_voc_cyclewater import pascal_voc_cyclewater
 # from datasets.pascal_voc_cycleclipart import pascal_voc_cycleclipart
 from datasets.sim10k import sim10k
+from datasets.kitti import kitti
 from datasets.water import water
 from datasets.clipart import clipart
 # from datasets.sim10k_cycle import sim10k_cycle
@@ -36,6 +37,9 @@ for split in ['train', 'val']:
 for split in ['train']:
   name = 'sim10k_{}'.format(split)
   __sets[name] = (lambda split=split : sim10k(split))
+for split in ['train']:
+  name = 'kitti_{}'.format(split)
+  __sets[name] = (lambda split=split : kitti(split))
 for year in ['2007', '2012']:
   for split in ['trainval', 'val']:
     name = 'voc_{}_{}'.format(year, split)
