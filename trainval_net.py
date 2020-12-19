@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
   print('{:d} roidb entries'.format(len(roidb)))
 
-  output_dir = args.save_dir + "/" + args.net + "/" + args.dataset + "/" + args.seed
+  output_dir = args.save_dir + "/" + args.net + "/" + args.dataset + "/" + str(args.seed)
 
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
