@@ -13,7 +13,7 @@ import math
 import torch.utils.model_zoo as model_zoo
 import pdb
 
-from model.datasets.config_dataset import cfg_d
+from datasets.config_dataset import cfg_d
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
        'resnet152']

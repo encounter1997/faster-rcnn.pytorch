@@ -16,7 +16,7 @@ import torchvision.models as models
 from model.faster_rcnn.faster_rcnn import _fasterRCNN
 import pdb
 
-from model.datasets.config_dataset import cfg_d
+from datasets.config_dataset import cfg_d
 
 class vgg16(_fasterRCNN):
   def __init__(self, classes, pretrained=False, class_agnostic=False):
