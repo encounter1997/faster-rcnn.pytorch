@@ -16,9 +16,12 @@ import torchvision.models as models
 from model.faster_rcnn.faster_rcnn import _fasterRCNN
 import pdb
 
+from model.datasets.config_dataset import cfg_d
+
 class vgg16(_fasterRCNN):
   def __init__(self, classes, pretrained=False, class_agnostic=False):
-    self.model_path = 'data/pretrained_model/vgg16_caffe.pth'
+    # self.model_path = 'data/pretrained_model/vgg16_caffe.pth'
+    self.model_path = cfg_d.VGG16_PATH
     self.dout_base_model = 512
     self.pretrained = pretrained
     self.class_agnostic = class_agnostic

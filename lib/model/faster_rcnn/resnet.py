@@ -13,6 +13,8 @@ import math
 import torch.utils.model_zoo as model_zoo
 import pdb
 
+from model.datasets.config_dataset import cfg_d
+
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
        'resnet152']
 
@@ -219,7 +221,8 @@ def resnet152(pretrained=False):
 
 class resnet(_fasterRCNN):
   def __init__(self, classes, num_layers=101, pretrained=False, class_agnostic=False):
-    self.model_path = 'data/pretrained_model/resnet101_caffe.pth'
+    # self.model_path = 'data/pretrained_model/resnet101_caffe.pth'
+    self.model_path = cfg_d.RES101_PATH
     self.dout_base_model = 1024
     self.pretrained = pretrained
     self.class_agnostic = class_agnostic

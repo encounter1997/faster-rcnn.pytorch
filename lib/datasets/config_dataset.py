@@ -12,6 +12,11 @@ __D = edict()
 # Consumers can get config by:
 #   from fast_rcnn_config import cfg
 cfg_d = __D
+
+# Path to pretrained models
+__D.FATHER_DIR_PRETRAIN = '/workspace/data0/wwen/ijcai/datasets/pretrained'
+__D.VGG16_PATH = os.path.join(__D.FATHER_DIR_PRETRAIN, 'vgg16_caffe.pth')
+__D.RES101_PATH = os.path.join(__D.FATHER_DIR_PRETRAIN, 'resnet101_caffe.pth')
 #
 # # Training options
 # #with regard to pascal, the directories under the path will be ./VOC2007, ./VOC2012"
