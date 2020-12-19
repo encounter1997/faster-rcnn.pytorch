@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
   print('Using config:')
   pprint.pprint(cfg)
-  np.random.seed(cfg.RNG_SEED)
+  # np.random.seed(cfg.RNG_SEED)  # included in set_seed
 
   #torch.backends.cudnn.benchmark = True
   if torch.cuda.is_available() and not args.cuda:
@@ -108,7 +108,8 @@ if __name__ == '__main__':
     raise ValueError("duplicate output dir !")
 
   # save trainval_net.py and lib/models/faster_rcnn
-  shutil.copy('trainval_net.py', os.path.join(output_dir))  # todo: modify this line when renaming the file
+  shutil.copy('trainval_net.py', os.path.join(output_dir))
+  # todo: modify this line when renaming the file
   # shutil.copy('trainval_net.py', os.path.join(output_dir, 'train_files'))
   # shutil.copytree('lib/model/faster_rcnn', os.path.join(output_dir, 'train_files/faster_rcnn'))
 
