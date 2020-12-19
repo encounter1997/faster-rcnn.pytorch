@@ -103,13 +103,14 @@ if __name__ == '__main__':
 
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
-    os.makedirs(os.path.join(output_dir, 'train_files/faster_rcnn'))
+    # os.makedirs(os.path.join(output_dir, 'train_files/faster_rcnn'))
   else:
     raise ValueError("duplicate output dir !")
 
   # save trainval_net.py and lib/models/faster_rcnn
-  shutil.copy('trainval_net.py', os.path.join(output_dir, 'train_files'))  # todo: modify this line when renaming the file
-  shutil.copytree('lib/model/faster_rcnn', os.path.join(output_dir, 'train_files/faster_rcnn'))
+  shutil.copy('trainval_net.py', os.path.join(output_dir))  # todo: modify this line when renaming the file
+  # shutil.copy('trainval_net.py', os.path.join(output_dir, 'train_files'))
+  # shutil.copytree('lib/model/faster_rcnn', os.path.join(output_dir, 'train_files/faster_rcnn'))
 
   sampler_batch = sampler(train_size, args.batch_size)
 
