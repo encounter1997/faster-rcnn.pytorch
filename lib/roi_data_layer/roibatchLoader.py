@@ -20,7 +20,7 @@ import time
 import pdb
 
 class roibatchLoader(data.Dataset):
-  def __init__(self, roidb, ratio_list, ratio_index, batch_size, num_classes, training=True, normalize=None):
+  def __init__(self, roidb, ratio_list, ratio_index, batch_size, num_classes, training=True, normalize=None, path_return=False):
     self._roidb = roidb
     self._num_classes = num_classes
     # we make the height of image consistent to trim_height, trim_width
@@ -33,6 +33,7 @@ class roibatchLoader(data.Dataset):
     self.ratio_index = ratio_index
     self.batch_size = batch_size
     self.data_size = len(self.ratio_list)
+    self.path_return = path_return
 
     # given the ratio_list, we want to make the ratio same for each batch.
     self.ratio_list_batch = torch.Tensor(self.data_size).zero_()
@@ -202,7 +203,11 @@ class roibatchLoader(data.Dataset):
         padding_data = padding_data.permute(2, 0, 1).contiguous()
         im_info = im_info.view(3)
 
-        return padding_data, im_info, gt_boxes_padding, num_boxes
+        if self.path_return:
+            return padding_data, im_info, gt_boxes_padding, num_boxes, blobs['path']
+        else:
+            return padding_data, im_info, gt_boxes_padding, num_boxes
+
     else:
         data = data.permute(0, 3, 1, 2).contiguous().view(3, data_height, data_width)
         im_info = im_info.view(3)
@@ -210,7 +215,10 @@ class roibatchLoader(data.Dataset):
         gt_boxes = torch.FloatTensor([1,1,1,1,1])
         num_boxes = 0
 
-        return data, im_info, gt_boxes, num_boxes
+        if self.path_return:
+            return data, im_info, gt_boxes, num_boxes, blobs['path']
+        else:
+            return data, im_info, gt_boxes, num_boxes
 
   def __len__(self):
     return len(self._roidb)
