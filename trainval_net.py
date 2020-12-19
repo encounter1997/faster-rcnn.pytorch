@@ -103,6 +103,7 @@ if __name__ == '__main__':
 
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
+    os.makedirs(os.path.join(output_dir, 'train_files/faster_rcnn'))
   else:
     raise ValueError("duplicate output dir !")
 
