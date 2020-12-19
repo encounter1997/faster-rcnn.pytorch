@@ -10,11 +10,13 @@ import cv2
 import pdb
 import random
 
+
 def save_net(fname, net):
     import h5py
     h5f = h5py.File(fname, mode='w')
     for k, v in net.state_dict().items():
         h5f.create_dataset(k, data=v.cpu().numpy())
+
 
 def load_net(fname, net):
     import h5py
@@ -22,6 +24,7 @@ def load_net(fname, net):
     for k, v in net.state_dict().items():
         param = torch.from_numpy(np.asarray(h5f[k]))
         v.copy_(param)
+
 
 def weights_normal_init(model, dev=0.01):
     if isinstance(model, list):
@@ -48,6 +51,7 @@ def clip_gradient(model, clip_norm):
         if p.requires_grad:
             p.grad.mul_(norm)
 
+
 def vis_detections(im, class_name, dets, thresh=0.8):
     """Visual debugging of detections."""
     for i in range(np.minimum(10, dets.shape[0])):
@@ -60,6 +64,58 @@ def vis_detections(im, class_name, dets, thresh=0.8):
     return im
 
 
+def show_cam_on_image(img, mask, bbox):
+    # print("mask: ", mask.shape)
+    heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
+    heatmap = np.float32(heatmap) / 255
+    # print("heatmap: ", heatmap.shape)
+    # print(bbox[1], bbox[3], bbox[0], bbox[2])
+
+    heatmap_full = np.zeros((img.shape), dtype=np.float32)
+    # print("heatmap_full: ", heatmap_full.shape)
+    # print("heatmap_full[:, bbox[1]:bbox[3], bbox[0]:bbox[2]]: ", heatmap_full[bbox[1]:bbox[3], bbox[0]:bbox[2], :])
+    heatmap_full[bbox[1]:bbox[3], bbox[0]:bbox[2], :] = heatmap[:, :, :]
+
+    # print("np.float32(img): ", np.float32(img) / 255)
+    cam = heatmap_full + np.float32(img) / 255
+    cam = cam / np.max(cam)
+    # cv2.imwrite("cam_slice.jpg", np.uint8(255 * cam))
+    return np.uint8(255 * cam)
+
+
+def vis_gradcam(im2show, activation, gradient, cls_det, class_name):
+    """visulaize gradcam on image"""
+    gradient = gradient.squeeze()  # (300, 512, 7, 7), note only one (512, 7, 7) tensor has non-zero elements
+    gradient = torch.sum(gradient, dim=0).cpu().numpy()  # (512, 7, 7)
+    activation = activation.squeeze()  # (300, 512, 7, 7)
+    activation = torch.sum(activation, dim=0).detach().cpu().numpy()  # (512, 7, 7)
+
+    cls_det = cls_det.cpu().numpy()
+    bbox = tuple(int(np.round(x)) for x in cls_det[:4])
+    score = cls_det[-1]
+    cv2.rectangle(im2show, bbox[0:2], bbox[2:4], (0, 204, 0), 2)
+    cv2.putText(im2show, '%s: %.3f' % (class_name, score), (bbox[0], bbox[1] + 15), cv2.FONT_HERSHEY_PLAIN,
+                1.0, (0, 0, 255), thickness=1)
+
+    weights = np.mean(gradient, axis=(1, 2))  # (512)
+    cam = np.zeros(activation.shape[1:], dtype=np.float32)  # (7, 7)
+    for i, w in enumerate(weights):
+        cam += w * activation[i, :, :]
+
+    shape = (bbox[2] - bbox[0], bbox[3] - bbox[1])  # TODO: check (W, H)
+    # cam = np.maximum(cam, 0)  # todo: sparse
+    cam = cv2.resize(cam, shape)
+    cam = cam - np.min(cam)
+    # if np.max(cam) > 0:
+    epsilon = 1e-8
+    cam = cam / (np.max(cam) + epsilon)
+
+    # print("cam alone: ", cam)
+
+    img_cam = show_cam_on_image(im2show, mask=cam, bbox=bbox)
+    return img_cam
+
+
 def adjust_learning_rate(optimizer, decay=0.1):
     """Sets the learning rate to the initial LR decayed by 0.5 every 20 epochs"""
     for param_group in optimizer.param_groups:
@@ -68,6 +124,7 @@ def adjust_learning_rate(optimizer, decay=0.1):
 
 def save_checkpoint(state, filename):
     torch.save(state, filename)
+
 
 def _smooth_l1_loss(bbox_pred, bbox_targets, bbox_inside_weights, bbox_outside_weights, sigma=1.0, dim=[1]):
     
@@ -84,6 +141,7 @@ def _smooth_l1_loss(bbox_pred, bbox_targets, bbox_inside_weights, bbox_outside_w
       loss_box = loss_box.sum(i)
     loss_box = loss_box.mean()
     return loss_box
+
 
 def _crop_pool_layer(bottom, rois, max_pool=True):
     # code modified from 
